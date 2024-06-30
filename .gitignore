@@ -2,3 +2,5 @@ VADenv
 requirements.txt
 /data/UCSD_Anomaly_Dataset.v1p2
 /data/UCSD_Anomaly_Dataset.tar.gz
+__pycache__
+dynamic_prototype_unit.py

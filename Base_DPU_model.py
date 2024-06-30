@@ -4,6 +4,7 @@
 import torch
 from collections import OrderedDict
 import torch.nn.functional as func
+from dynamic_prototype_unit import *
 
 class Encoder(torch.nn.Module):
     def __init__(self, t_length = 5, n_channel = 3):
@@ -11,12 +12,21 @@ class Encoder(torch.nn.Module):
 
         def BaseConvLayers1(numInput, numOutput):
             return torch.nn.Sequential(
-                torch.nn.Conv2d(in_channel=numInput, out_channel=numOutput, 
+                torch.nn.Conv2d(in_channels=numInput, out_channels=numOutput, 
                                 kernel_size=3, stride=1, padding=1),
-                torch.nn.ReLu(inplace=False),
-                torch.nn.Conv2d(in_channel=numOutput, out_channel=numOutput, 
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Conv2d(in_channels=numOutput, out_channels=numOutput, 
                                 kernel_size=3, stride=1, padding=1),
-                torch.nn.ReLu(inplace=False)
+                torch.nn.ReLU(inplace=False)
+            )
+        
+        def BaseConvLayers2(numInput, numOutput):
+            return torch.nn.Sequential(
+                torch.nn.Conv2d(in_channels=numInput, out_channels=numOutput, 
+                                kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Conv2d(in_channels=numOutput, out_channels=numOutput, 
+                                kernel_size=3, stride=1, padding=1)
             )
         
         self.conv1 = BaseConvLayers1(n_channel*(t_length-1), 64)
@@ -28,9 +38,9 @@ class Encoder(torch.nn.Module):
         self.conv3 = BaseConvLayers1(128, 256)
         self.pool3 = torch.nn.MaxPool2d(kernel_size=2, stride=2)
 
-        self.conv4 = BaseConvLayers1(256, 512)
+        self.conv4 = BaseConvLayers2(256, 512)
 
-    def forward_pass(self, x):
+    def forward(self, x):
         tensorConv1 = self.conv1(x)
         tensorPool1 = self.pool1(tensorConv1)
 
@@ -50,19 +60,19 @@ class Decoder(torch.nn.Module):
 
         def BaseConvLayers(numInput, numOutput):
             return torch.nn.Sequential(
-                torch.nn.Conv2d(in_channel=numInput, out_channels=numOutput, 
+                torch.nn.Conv2d(in_channels=numInput, out_channels=numOutput, 
                                 kernel_size=3, stride=1, padding=1),
-                torch.nn.ReLu(inplace=False),
-                torch.nn.Conv2d(in_channel=numOutput, out_channels=numOutput, 
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Conv2d(in_channels=numOutput, out_channels=numOutput, 
                                 kernel_size=3, stride=1, padding=1),
-                torch.nn.ReLu(inplace=False),
+                torch.nn.ReLU(inplace=False),
             )
         
         def Deconvolve(numChannels, numOutputs):
             return torch.nn.Sequential(
                 torch.nn.ConvTranspose2d(in_channels=numChannels, out_channels=numOutputs, 
                                         kernel_size=3, stride=2, padding=1, output_padding=1),
-                torch.nn.ReLu(inplace=False)
+                torch.nn.ReLU(inplace=False)
             )
         
         self.conv1 = BaseConvLayers(512, 512)
@@ -74,7 +84,7 @@ class Decoder(torch.nn.Module):
         self.conv3 = BaseConvLayers(256, 128)
         self.deconvolve3 = Deconvolve(128, 64)
 
-    def forward_pass(self, input, skip3, skip2, skip1):
+    def forward(self, input, skip3, skip2, skip1):
         tensorConv = self.conv1(input)
         tensorDeconvolve1 = self.deconvolve1(tensorConv)
         concat1 = torch.cat((skip1, tensorDeconvolve1), dim=1)
@@ -98,12 +108,12 @@ class AutoEncoder(torch.nn.Module):
 
         def Outputhead(numInput, numOutput, numChannels):
             return torch.nn.Sequential(
-                torch.nn.Conv2d(in_channel=numInput, out_channels=numChannels, 
+                torch.nn.Conv2d(in_channels=numInput, out_channels=numChannels, 
                                 kernel_size=3, stride=1, padding=1),
-                torch.nn.ReLu(inplace=False),
-                torch.nn.Conv2d(in_channel=numChannels, out_channels=numChannels, kernel_size=3, stride=1, padding=1),
-                torch.nn.ReLu(inplace=False),
-                torch.nn.Conv2d(in_channel=numChannels, out_channels=numInput, 
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Conv2d(in_channels=numChannels, out_channels=numChannels, kernel_size=3, stride=1, padding=1),
+                torch.nn.ReLU(inplace=False),
+                torch.nn.Conv2d(in_channels=numChannels, out_channels=numOutput, 
                                 kernel_size=3, stride=1, padding=1),
                 torch.nn.Tanh()
             )
@@ -111,7 +121,7 @@ class AutoEncoder(torch.nn.Module):
         self.encoder = Encoder(t_length, n_channel)
         self.decoder = Decoder(t_length, n_channel)
         # TODO: Write the part of the DPU that breaks the encoded normal vectors into prototypes
-        self.prototype = Meta_Prototype(proto_size, feature_dim, key_dim, temp_update, temp_gather)
+        self.prototype = Dynamic_Prototype(proto_size, feature_dim, key_dim, temp_update, temp_gather)
         self.outhead = Outputhead(128, n_channel, 64)
 
     def set_learnable_params(self, layers):
@@ -176,4 +186,4 @@ class AutoEncoder(torch.nn.Module):
 # def train_init():
 
 # TODO: Write the function that initialies the testing process for the MPU
-# def train_init():      
+# def test_init():      
