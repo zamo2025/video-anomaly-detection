@@ -41,16 +41,16 @@ from utils import *
 batchSize = 4
 frameReconstuctLoss = 1.0
 featReconstuctLoss = 1.0
-disLossRate = 0.0001
+disLossRate = 0.001
 timeStep = 5
 segs = 32
 numWorkers = 1
 numChannels = 3
 numPrototypes = 10
+learningRate = 0.0001
 # ped1 = np.load('./data/frame_labels_ped1.npy', allow_pickle=True)
 
 ped2TrainPath = './data/UCSD_Anomaly_Dataset.v1p2/UCSDped2/Train'
-# ped2TestPath = './data/UCSD_Anomaly_Dataset.v1p2/UCSDped2/Test'
 
 # ped2TrainVideos = extract_videos(ped2TrainPath)
 # print(ped2TrainVideos.shape)
@@ -61,7 +61,7 @@ ped2Labels = np.load('./data/frame_labels_ped2.npy', allow_pickle=True)
 # dataset = TensorDataset(videoTensors)
 # videoLoader = DataLoader(dataset, batch_size=batchSize, shuffle=True)
 
-trainDataset = VideoDataLoader(ped2TrainPath, 'UCSDped2', trans.Compose([
+trainDataset = TrainDataLoader(ped2TrainPath, 'UCSDped2', trans.Compose([
              trans.ToTensor(),           
              ]), height=256, width=256, timeStep=timeStep-1, 
                  segments=segs, batchSize=batchSize)
@@ -82,7 +82,7 @@ modelParams.extend(model.prototype.parameters())
 modelParams.extend(model.outhead.parameters())
 
 # Optimize model parameters
-optimizer = torch.optim.Adam(modelParams, lr=1e-4)
+optimizer = torch.optim.Adam(modelParams, lr=learningRate)
 
 startEpoch = 0
 model = torch.nn.DataParallel(model)
@@ -94,7 +94,7 @@ distinguishedLoss = AverageTracker()
 
 model.train()
 
-numEpochs = 10
+numEpochs = 60
 for epoch in range(startEpoch, numEpochs):
     labels = []
 
@@ -134,11 +134,11 @@ for epoch in range(startEpoch, numEpochs):
     featureLoss.reset()
     distinguishedLoss.reset()
 
-    # state = {
-    #     'epoch': epoch,
-    #     'state_dict': model,
-    #     'optimizer': optimizer.state_dict(),
-    # }
-    # torch.save(state, os.path('./model.pth'))
+    state = {
+        'epoch': epoch,
+        'state_dict': model,
+        'optimizer': optimizer.state_dict(),
+    }
+    torch.save(state, os.path.join('.', './model.pth'))
 
 print('Training finished')

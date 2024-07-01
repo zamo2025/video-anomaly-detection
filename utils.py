@@ -17,8 +17,8 @@ def np_load_frame(filename, height, width):
     resizedImg = (resizedImg / 127.5) - 1.0
     return resizedImg
 
-# Extends Dataset, specifically used to manage the video data during for the training process
-class DataLoader(data.Dataset):
+# Extends Dataset, specifically used to manage the video data during for the testing process
+class TestDataLoader(data.Dataset):
     def __init__(self, folder, transform, height, width, timeStep=4, numPred=1):
         self.directory = folder
         self.transform = transform
@@ -27,8 +27,8 @@ class DataLoader(data.Dataset):
         self.width = width
         self.timeStep = timeStep
         self.numPred = numPred
-        self.samples = self.get_all_samples()
         self.setup()
+        self.samples = self.get_all_samples()
          
 
     def setup(self):
@@ -66,8 +66,8 @@ class DataLoader(data.Dataset):
     def __len__(self):
         return len(self.samples)
 
-# Extention of the Dataset, specifically used to 
-class VideoDataLoader(data.Dataset):
+# Extention of the Dataset, specifically used to prepare the train videos for training
+class TrainDataLoader(data.Dataset):
     def __init__(self, directory, dataset, transform, height, width, timeStep=4, segments=32, numPred=1, batchSize=1):
         self.directory = directory
         self.dataset = dataset

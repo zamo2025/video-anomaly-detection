@@ -4,3 +4,4 @@ requirements.txt
 /data/UCSD_Anomaly_Dataset.tar.gz
 __pycache__
 zamo@openhpc.binghamton.edu
+model.pth
