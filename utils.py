@@ -6,8 +6,40 @@ import cv2
 import torch.utils.data as data
 import random
 import pickle
+import math
+from sklearn.metrics import roc_auc_score
 
 rng = np.random.RandomState(42)
+
+def psnr(mse):
+    return 10 * math.log10(1 / mse)
+
+def calc(r=5, sigma=2):
+    k = np.zeros(r)
+    for i in range(r):
+        k[i] = 1/((2*math.pi)**0.5*sigma)*math.exp(-((i-r//2)**2/2/(sigma**2)))
+    return k
+
+def anomaly_score(psnr, maxPSNR, minPSNR):
+    return ((psnr - minPSNR) / (maxPSNR - minPSNR))
+
+def anomaly_score_list(psnrList):
+    anomalyScoreList = list()
+    for i in range(len(psnrList)):
+        anomalyScoreList.append(anomaly_score(psnrList[i], np.max(psnrList), np.min(psnrList)))
+        
+    return anomalyScoreList
+
+def score_sum(list1, list2, alpha):
+    result = []
+    for i in range(len(list1)):
+        result.append((alpha*list1[i]+(1-alpha)*list2[i]))
+        
+    return result
+
+def AUC(anomalyScores, labels):
+    frameAUC = roc_auc_score(y_true=np.squeeze(labels, axis=0), y_score=np.squeeze(anomalyScores))
+    return frameAUC
 
 # Normalize the images from [0, 255] to [0, 1]
 def np_load_frame(filename, height, width):
@@ -57,6 +89,7 @@ class TestDataLoader(data.Dataset):
         
         batch = []
         for i in range(self.timeStep+self.numPred):
+            print(type(self.videos[videoName]['frame']))
             image = np_load_frame(self.videos[videoName]['frame'][frame_name+i], self.height, self.width)
             if self.transform is not None:
                 batch.append(self.transform(image))

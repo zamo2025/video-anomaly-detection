@@ -171,9 +171,9 @@ class AutoEncoder(torch.nn.Module):
             updatedFeatures, keys, query, featureLoss = self.prototype(normNewFeature, normNewFeature, 
                                                                        weights, train)
             if weights == None:
-                output = self.outhead(updatedFeature)
+                output = self.outhead(updatedFeatures)
             else:
-                input = func.conv2d(updatedFeature, weights['ohead.0.weight'], weights['ohead.0.bias'], stride=1, padding=1)
+                input = func.conv2d(updatedFeatures, weights['ohead.0.weight'], weights['ohead.0.bias'], stride=1, padding=1)
                 input = func.relu(input)
                 input = func.conv2d(input, weights['ohead.2.weight'], weights['ohead.2.weight'], stride=1, padding=1)
                 input = func.relu(input)
