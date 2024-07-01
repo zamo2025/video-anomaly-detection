@@ -76,7 +76,7 @@ class Decoder(torch.nn.Module):
             )
         
         self.conv1 = BaseConvLayers(512, 512)
-        self.deconvolve1 = Deconvolve(512, 512)
+        self.deconvolve1 = Deconvolve(512, 256)
 
         self.conv2 = BaseConvLayers(512, 256)
         self.deconvolve2 = Deconvolve(256, 128)
@@ -94,7 +94,7 @@ class Decoder(torch.nn.Module):
         concat2 = torch.cat((skip2, tensorDeconvolve2), dim=1)
 
         tensorConv3 = self.conv3(concat2)
-        tensorDeconvolve3 = self.deconvolve2(tensorConv3)
+        tensorDeconvolve3 = self.deconvolve3(tensorConv3)
         concat3 = torch.cat((skip3, tensorDeconvolve3), dim=1)
 
         return concat3
