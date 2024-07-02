@@ -5,36 +5,36 @@ This repository was built with the goal of reproducing the results of paper "Lea
 Steps to run the code in Binghamton's openhpc server:
 
 1. Set up a python virtual environment:
-
+    ```bash
     python -m venv ./
 
 2. Activate the environment:
-    
+    ```bash
     source ./bin/activate
 
 3. Install the required pyhton packages:
-    
+    ```bash
     pip install -r requirements.txt
 
 4. Load the cuda module:
-    
+    ```bash
     module load cuda
 
 5. Copy the UCSD datasets to the data folder [UCSDped](http://www.svcl.ucsd.edu/projects/anomaly/dataset.htm).
 
 6. Extract datasets:
-    
+    ```bash
     python3 extract_ped_datasets.py
 
 7. Train a model using slurm:
-    
+    ```bash
     srun -n1 -N1 --partition=gpu python3 train_DPU.py
 
 8. Test the model (this doesn't currently work):
-    
+    ```bash
     srun -n1 -N1 --partition=gpu python3 test_DPU.py
 
-    
+    ```
     @inproceedings{Lv2021MPN,
         author    = {Hui LV and
                 Chen Chen and
