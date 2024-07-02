@@ -1,0 +1,12 @@
+imageio==2.33
+numpy==1.23.5
+opencv-python==4.10.0.84
+Pillow==9.1
+protobuf==3.9.1
+PyYAML==5.1.2
+scikit-image==0.24
+scipy==1.14.0
+sklearn==0.0
+torch==1.11.0
+torchvision==0.12
+tqdm==4.36.1
